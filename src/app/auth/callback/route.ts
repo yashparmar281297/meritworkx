@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams, origin: requestOrigin } = new URL(request.url);
+  // Behind some reverse proxies (e.g. Hostinger's Node.js hosting), the request's
+  // own resolved host can be the server's internal bind address (0.0.0.0:3000)
+  // instead of the real public domain — trust an explicit site URL when set.
+  const origin = process.env.NEXT_PUBLIC_SITE_URL || requestOrigin;
   const code = searchParams.get("code");
   const role = searchParams.get("role");
 
