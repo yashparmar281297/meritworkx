@@ -1,0 +1,93 @@
+<svg viewBox="0 0 1400 1000" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif">
+
+  <!-- Brand tokens: ink #18181B / ink-soft #52525B / ink-faint #A1A1AA
+       paper #FFFFFF / surface #FAFAF9 / yellow #F5B700 / yellow-deep #A16207
+       yellow-soft #FEF9C3 / yellow-ring #FDE68A / line #E4E4E7 -->
+
+  <rect width="1400" height="1000" fill="#FFFFFF"/>
+
+  <!-- reusable chip icon: rounded square, node + two signal ticks (AI reading a signal, not a bid) -->
+  <!-- ============ PRIMARY LOCKUP ============ -->
+  <g transform="translate(170,110)">
+    <g transform="translate(0,0)">
+      <rect x="0" y="0" width="110" height="110" rx="26" fill="#18181B"/>
+      <line x1="24" y1="55" x2="38" y2="55" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="55" cy="55" r="12" fill="#F5B700"/>
+      <line x1="72" y1="55" x2="86" y2="55" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(140,-4)">
+      <text x="0" y="86" font-size="82" font-weight="800" fill="#18181B" letter-spacing="-1.5">MeritWork<tspan fill="#18181B">X</tspan></text>
+      <rect x="4" y="102" width="720" height="4" fill="#E4E4E7"/>
+      <text x="4" y="138" font-size="23" font-weight="500" fill="#52525B" letter-spacing="1.5">HIRE AND WORK, ON MERIT.</text>
+    </g>
+  </g>
+
+  <line x1="170" y1="290" x2="1230" y2="290" stroke="#E4E4E7" stroke-width="2"/>
+
+  <!-- ============ ICON ALONE ============ -->
+  <g transform="translate(230,350)">
+    <text x="0" y="-30" font-size="19" fill="#A1A1AA" font-weight="600" letter-spacing="2">ICON MARK</text>
+    <g transform="scale(1.4)">
+      <rect x="0" y="0" width="110" height="110" rx="26" fill="#18181B"/>
+      <line x1="24" y1="55" x2="38" y2="55" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="55" cy="55" r="12" fill="#F5B700"/>
+      <line x1="72" y1="55" x2="86" y2="55" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <!-- ============ ICON ON YELLOW (inverted use) ============ -->
+  <g transform="translate(600,350)">
+    <text x="0" y="-30" font-size="19" fill="#A1A1AA" font-weight="600" letter-spacing="2">ON YELLOW SURFACE</text>
+    <rect x="0" y="0" width="180" height="180" rx="30" fill="#FFFBEB"/>
+    <g transform="translate(35,35)">
+      <rect x="0" y="0" width="110" height="110" rx="26" fill="#18181B"/>
+      <line x1="24" y1="55" x2="38" y2="55" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="55" cy="55" r="12" fill="#F5B700"/>
+      <line x1="72" y1="55" x2="86" y2="55" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <!-- ============ FAVICON / APP ICON (icon fills the whole tile) ============ -->
+  <g transform="translate(850,350)">
+    <text x="0" y="-30" font-size="19" fill="#A1A1AA" font-weight="600" letter-spacing="2">FAVICON / APP TILE</text>
+    <rect x="0" y="0" width="180" height="180" rx="40" fill="#18181B"/>
+    <line x1="46" y1="90" x2="66" y2="90" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="90" cy="90" r="18" fill="#F5B700"/>
+    <line x1="114" y1="90" x2="134" y2="90" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round"/>
+  </g>
+
+  <!-- ============ STACKED LOCKUP ============ -->
+  <g transform="translate(1070,342)">
+    <text x="70" y="-30" font-size="19" fill="#A1A1AA" font-weight="600" letter-spacing="2" text-anchor="middle">STACKED</text>
+    <g transform="translate(15,0) scale(0.72)">
+      <rect x="0" y="0" width="110" height="110" rx="26" fill="#18181B"/>
+      <line x1="24" y1="55" x2="38" y2="55" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="55" cy="55" r="12" fill="#F5B700"/>
+      <line x1="72" y1="55" x2="86" y2="55" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+    </g>
+    <text x="70" y="140" font-size="30" font-weight="800" fill="#18181B" text-anchor="middle" letter-spacing="-0.8">MeritWork<tspan fill="#18181B">X</tspan></text>
+  </g>
+
+  <line x1="170" y1="590" x2="1230" y2="590" stroke="#E4E4E7" stroke-width="2"/>
+
+  <!-- ============ ON INK BACKGROUND (reversed wordmark) ============ -->
+  <g transform="translate(170,630)">
+    <rect x="0" y="0" width="1060" height="160" rx="18" fill="#18181B"/>
+    <g transform="translate(40,25)">
+      <rect x="0" y="0" width="90" height="90" rx="22" fill="#F5B700"/>
+      <line x1="20" y1="45" x2="32" y2="45" stroke="#18181B" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="45" cy="45" r="10" fill="#18181B"/>
+      <line x1="58" y1="45" x2="70" y2="45" stroke="#18181B" stroke-width="6" stroke-linecap="round"/>
+    </g>
+    <text x="155" y="98" font-size="60" font-weight="800" fill="#FFFFFF" letter-spacing="-1.2">MeritWork<tspan fill="#F5B700">X</tspan></text>
+  </g>
+
+  <!-- ============ CONCEPT NOTE ============ -->
+  <g transform="translate(170,850)">
+    <text x="0" y="0" font-size="19" fill="#A1A1AA" font-weight="600" letter-spacing="2">CONCEPT</text>
+    <text x="0" y="34" font-size="17" fill="#52525B">A simple chip icon reading a signal — two ticks either</text>
+    <text x="0" y="58" font-size="17" fill="#52525B">side of one yellow node. AI evaluating, then landing</text>
+    <text x="0" y="82" font-size="17" fill="#52525B">on one clear result. No coin, no gavel, no bid amount.</text>
+  </g>
+
+</svg>

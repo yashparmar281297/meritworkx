@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__6015c912-bc90-4e91-8c31-9216c195fe4d__list_projects",
+      "mcp__6015c912-bc90-4e91-8c31-9216c195fe4d__execute_sql",
+      "mcp__6015c912-bc90-4e91-8c31-9216c195fe4d__list_tables",
+      "Bash(npx tsc *)",
+      "Bash(npm install *)",
+      "mcp__6015c912-bc90-4e91-8c31-9216c195fe4d__apply_migration",
+      "Bash(npx eslint *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000 --max-time 5)",
+      "Bash(node -e \"const fs=require\\('fs'\\); const p='node_modules/razorpay/dist/types/subscriptions.d.ts'; console.log\\(fs.existsSync\\(p\\) ? fs.readFileSync\\(p,'utf8'\\) : 'not found'\\)\")",
+      "Bash(node \"/c/Users/ATM/AppData/Local/Temp/claude/C--Users-ATM-Desktop-meritlance/a82c6790-1463-4720-aee0-dc08e1ddf071/scratchpad/test-razorpay-sub.js\")",
+      "WebFetch(domain:razorpay.com)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(npx --yes http-server -p 8899 -a 127.0.0.1 --silent)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://127.0.0.1:8899/rzp_intl_test.html)",
+      "Bash(npx --yes http-server -p 8899 -a 127.0.0.1)",
+      "Bash(taskkill //F //IM node.exe //FI \"WINDOWTITLE eq *http-server*\")",
+      "Bash(wmic process *)",
+      "Bash(cat next.config.ts)",
+      "Bash(cat next.config.js)",
+      "Bash(cat next.config.mjs)",
+      "Bash(gh api *)",
+      "WebFetch(domain:raw.githubusercontent.com)"
+    ]
+  }
+}
