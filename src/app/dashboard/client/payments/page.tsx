@@ -12,6 +12,14 @@ export default async function ClientPaymentsPage() {
 
   if (!user) redirect("/login");
 
+  const { data: viewerProfile } = await supabase
+    .from("profiles")
+    .select("country")
+    .eq("id", user.id)
+    .single();
+
+  const viewerCountry = viewerProfile?.country ?? null;
+
   const { data: projectsRaw } = await supabase
     .from("projects")
     .select("id, title, budget_min, budget_max")
@@ -103,6 +111,7 @@ export default async function ClientPaymentsPage() {
                 projectId={p.id}
                 projectTitle={p.title}
                 defaultAmount={Number(p.budget_max ?? p.budget_min ?? 0)}
+                viewerCountry={viewerCountry}
               />
             ))}
           </div>
@@ -126,7 +135,7 @@ export default async function ClientPaymentsPage() {
         ) : (
           <div className="flex flex-col gap-3">
             {payments.map((p) => (
-              <ClientPaymentRow key={p.id} payment={p} />
+              <ClientPaymentRow key={p.id} payment={p} viewerCountry={viewerCountry} />
             ))}
           </div>
         )}

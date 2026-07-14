@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ReleasePaymentButton from "./ReleasePaymentButton";
+import { PriceDisplayInline } from "./PriceDisplay";
 
 const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }> = {
   created: { bg: "var(--surface)", color: "var(--ink-faint)", label: "Pending" },
@@ -21,7 +22,13 @@ type Payment = {
   subscription_plan: string | null;
 };
 
-export default function ClientPaymentRow({ payment }: { payment: Payment }) {
+export default function ClientPaymentRow({
+  payment,
+  viewerCountry,
+}: {
+  payment: Payment;
+  viewerCountry?: string | null;
+}) {
   const isSubscription = payment.type === "subscription";
   const style = isSubscription
     ? { bg: "var(--good-soft)", color: "var(--good)", label: "Paid" }
@@ -61,11 +68,16 @@ export default function ClientPaymentRow({ payment }: { payment: Payment }) {
           Breakdown
         </p>
         <p className="text-xs" style={{ color: "var(--ink-soft)" }}>
-          {isSubscription
-            ? "Monthly subscription"
-            : payment.project_value != null
-            ? `$${Number(payment.project_value).toFixed(2)} + $${Number(payment.client_fee ?? 0).toFixed(2)} fee`
-            : "—"}
+          {isSubscription ? (
+            "Monthly subscription"
+          ) : payment.project_value != null ? (
+            <>
+              <PriceDisplayInline amount={payment.project_value} viewerCountry={viewerCountry} /> +{" "}
+              <PriceDisplayInline amount={payment.client_fee ?? 0} viewerCountry={viewerCountry} /> fee
+            </>
+          ) : (
+            "—"
+          )}
         </p>
       </div>
 
@@ -74,9 +86,14 @@ export default function ClientPaymentRow({ payment }: { payment: Payment }) {
           You paid
         </p>
         <p className="text-sm font-semibold" style={{ color: "var(--ink)" }}>
-          {isSubscription
-            ? `₹${Number(payment.amount).toFixed(2)}`
-            : `$${Number(payment.total_charged ?? payment.amount).toFixed(2)}`}
+          {isSubscription ? (
+            `₹${Number(payment.amount).toFixed(2)}`
+          ) : (
+            <PriceDisplayInline
+              amount={payment.total_charged ?? payment.amount}
+              viewerCountry={viewerCountry}
+            />
+          )}
         </p>
       </div>
 

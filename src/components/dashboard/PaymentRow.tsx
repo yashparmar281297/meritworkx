@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useConvertedAmount } from "./PriceDisplay";
+import { useConvertedAmount, PriceDisplayInline } from "./PriceDisplay";
 
 const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }> = {
   created: { bg: "var(--surface)", color: "var(--ink-faint)", label: "Pending" },
@@ -83,11 +83,16 @@ export default function PaymentRow({ payment, viewerCountry }: { payment: Paymen
           Breakdown
         </p>
         <p className="text-xs" style={{ color: "var(--ink-soft)" }}>
-          {isSubscription
-            ? "Monthly subscription"
-            : payment.project_value != null
-            ? `$${Number(payment.project_value).toFixed(2)} − $${Number(payment.freelancer_fee ?? 0).toFixed(2)} fee`
-            : "—"}
+          {isSubscription ? (
+            "Monthly subscription"
+          ) : payment.project_value != null ? (
+            <>
+              <PriceDisplayInline amount={payment.project_value} viewerCountry={viewerCountry} /> −{" "}
+              <PriceDisplayInline amount={payment.freelancer_fee ?? 0} viewerCountry={viewerCountry} /> fee
+            </>
+          ) : (
+            "—"
+          )}
         </p>
       </div>
 

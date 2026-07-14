@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { getCurrencyForCountry } from "@/lib/currency";
 
 declare global {
   interface Window {
@@ -34,18 +35,49 @@ export default function EscrowFundingCard({
   projectId,
   projectTitle,
   defaultAmount,
+  viewerCountry,
 }: {
   projectId: string;
   projectTitle: string;
   defaultAmount: number;
+  viewerCountry?: string | null;
 }) {
   const router = useRouter();
-  const [amount, setAmount] = useState(defaultAmount || 0);
+  const [amountUsd, setAmountUsd] = useState(defaultAmount || 0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [exchangeRate, setExchangeRate] = useState<number | null>(null);
 
-  const clientFee = Math.round(amount * 0.05 * 100) / 100;
-  const total = amount + clientFee;
+  const { currency, symbol } = getCurrencyForCountry(viewerCountry);
+  const isUsd = currency === "USD";
+  const rate = isUsd ? 1 : exchangeRate;
+
+  useEffect(() => {
+    if (isUsd) return;
+    let cancelled = false;
+    fetch("/api/exchange-rates")
+      .then((r) => r.json())
+      .then((data) => {
+        const r = data?.rates?.[currency];
+        if (!cancelled && r) setExchangeRate(r);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [currency, isUsd]);
+
+  // Displayed/edited in the client's local currency when known; converted to/from
+  // USD (the canonical stored currency) using the live rate.
+  const displayAmount = rate ? amountUsd * rate : amountUsd;
+  const clientFeeUsd = Math.round(amountUsd * 0.05 * 100) / 100;
+  const totalUsd = amountUsd + clientFeeUsd;
+  const displayClientFee = rate ? clientFeeUsd * rate : clientFeeUsd;
+  const displayTotal = rate ? totalUsd * rate : totalUsd;
+
+  function handleAmountChange(localValue: number) {
+    setAmountUsd(rate ? localValue / rate : localValue);
+  }
 
   async function handlePay() {
     setError("");
@@ -54,7 +86,7 @@ export default function EscrowFundingCard({
     const res = await fetch("/api/payments/create-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ projectId, amount }),
+      body: JSON.stringify({ projectId, amount: amountUsd }),
     });
     const data = await res.json();
 
@@ -123,30 +155,38 @@ export default function EscrowFundingCard({
 
       <div>
         <label className="text-xs font-medium mb-1 block" style={{ color: "var(--ink-soft)" }}>
-          Project amount (USD)
+          Project amount {!isUsd && `(${currency})`}
         </label>
-        <input
-          type="number"
-          min={1}
-          value={amount}
-          onChange={(e) => setAmount(Number(e.target.value))}
-          className="w-full px-3 py-2 rounded-lg border text-sm outline-none"
-          style={{ borderColor: "var(--line)", background: "var(--paper)", color: "var(--ink)" }}
-        />
+        <div className="relative">
+          <span
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-sm"
+            style={{ color: "var(--ink-faint)" }}
+          >
+            {symbol}
+          </span>
+          <input
+            type="number"
+            min={1}
+            value={Math.round(displayAmount * 100) / 100}
+            onChange={(e) => handleAmountChange(Number(e.target.value))}
+            className="w-full pl-8 pr-3 py-2 rounded-lg border text-sm outline-none"
+            style={{ borderColor: "var(--line)", background: "var(--paper)", color: "var(--ink)" }}
+          />
+        </div>
       </div>
 
       <div className="text-xs flex flex-col gap-1" style={{ color: "var(--ink-soft)" }}>
         <div className="flex justify-between">
           <span>Project value</span>
-          <span>${amount.toFixed(2)}</span>
+          <span>{symbol}{displayAmount.toFixed(2)}</span>
         </div>
         <div className="flex justify-between">
           <span>Client fee (5%)</span>
-          <span>${clientFee.toFixed(2)}</span>
+          <span>{symbol}{displayClientFee.toFixed(2)}</span>
         </div>
         <div className="flex justify-between font-semibold" style={{ color: "var(--ink)" }}>
           <span>You pay</span>
-          <span>${total.toFixed(2)}</span>
+          <span>{symbol}{displayTotal.toFixed(2)}</span>
         </div>
       </div>
 
@@ -159,7 +199,7 @@ export default function EscrowFundingCard({
       <button
         type="button"
         onClick={handlePay}
-        disabled={loading || amount <= 0}
+        disabled={loading || amountUsd <= 0}
         className="w-full py-2.5 rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition hover:opacity-90 disabled:opacity-60"
         style={{ background: "var(--yellow)", color: "var(--ink)" }}
       >

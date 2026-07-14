@@ -24,7 +24,7 @@ function rowContent(p: Proposal, style: { bg: string; color: string; label: stri
         <h3 className="font-medium text-sm truncate" style={{ color: "var(--ink)" }}>{p.project!.title}</h3>
         <p className="text-xs mt-1 truncate" style={{ color: "var(--ink-faint)" }}>{p.project!.description}</p>
       </div>
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
         <span className="text-sm font-semibold" style={{ color: "var(--ink)" }}>
   {p.rate ? (
     <PriceDisplayInline amount={p.rate} viewerCountry={viewerCountry} />
@@ -72,7 +72,7 @@ export default function RecentProposals({
           {proposals.map((p) => {
             if (!p.project) return null;
             const style = PROPOSAL_STATUS_STYLES[p.status] ?? PROPOSAL_STATUS_STYLES.pending;
-            const rowClass = "flex items-center justify-between gap-4 px-5 sm:px-6 py-4 border-b last:border-b-0";
+            const rowClass = "flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 px-5 sm:px-6 py-4 border-b last:border-b-0";
             const rowStyle = { borderColor: "var(--line)" };
 
             if (linkPrefix) {

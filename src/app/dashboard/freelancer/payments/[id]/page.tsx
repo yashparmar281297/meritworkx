@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import PrintButton from "@/components/dashboard/PrintButton";
+import { PriceDisplayInline } from "@/components/dashboard/PriceDisplay";
 
 const STATUS_LABEL: Record<string, string> = {
   created: "Pending",
@@ -23,6 +24,14 @@ export default async function FreelancerPaymentSlipPage({
   } = await supabase.auth.getUser();
 
   if (!user) redirect("/login");
+
+  const { data: viewerProfile } = await supabase
+    .from("profiles")
+    .select("country")
+    .eq("id", user.id)
+    .single();
+
+  const viewerCountry = viewerProfile?.country ?? null;
 
   const { data: payment } = await supabase
     .from("payments")
@@ -86,14 +95,26 @@ export default async function FreelancerPaymentSlipPage({
             <Row label="Client" value={payment.client_name ?? "—"} />
             <Row label="Project" value={payment.project_name ?? "—"} />
             <div className="h-px" style={{ background: "var(--line)" }} />
-            <Row label="Project value" value={`$${Number(payment.project_value ?? 0).toFixed(2)}`} />
+            <Row
+              label="Project value"
+              value={<PriceDisplayInline amount={payment.project_value ?? 0} viewerCountry={viewerCountry} />}
+            />
             <Row
               label="Service fee (5%)"
-              value={`− $${Number(payment.freelancer_fee ?? 0).toFixed(2)}`}
+              value={
+                <>
+                  −{" "}
+                  <PriceDisplayInline amount={payment.freelancer_fee ?? 0} viewerCountry={viewerCountry} />
+                </>
+              }
               muted
             />
             <div className="h-px" style={{ background: "var(--line)" }} />
-            <Row label="You received" value={`$${Number(payment.amount).toFixed(2)}`} bold />
+            <Row
+              label="You received"
+              value={<PriceDisplayInline amount={payment.amount} viewerCountry={viewerCountry} />}
+              bold
+            />
           </div>
         )}
 
@@ -118,7 +139,7 @@ function Row({
   small,
 }: {
   label: string;
-  value: string;
+  value: React.ReactNode;
   bold?: boolean;
   muted?: boolean;
   small?: boolean;

@@ -302,6 +302,7 @@ const [city, setCity] = useState(initialProfile?.city ?? "");
       onChange={setCountry}
       options={COUNTRIES.map((c) => ({ value: c.name, label: c.name }))}
       placeholder="Select country"
+      searchable
     />
   </div>
   <div>

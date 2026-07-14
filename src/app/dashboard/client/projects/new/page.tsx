@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, type FormEvent, type KeyboardEvent } from "react";
+import { useState, useEffect, type FormEvent, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { X, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { DURATION_OPTIONS, COMMITMENT_OPTIONS, RATE_TYPE_OPTIONS } from "@/lib/projectOptions";
+import { getCurrencyForCountry } from "@/lib/currency";
 import Select from "@/components/ui/Select";
 
 export default function NewProjectPage() {
@@ -22,6 +23,39 @@ export default function NewProjectPage() {
   const [skills, setSkills] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [viewerCountry, setViewerCountry] = useState<string | null>(null);
+  const [exchangeRate, setExchangeRate] = useState<number | null>(null);
+
+  const { currency, symbol } = getCurrencyForCountry(viewerCountry);
+
+  useEffect(() => {
+    async function loadCountryAndRate() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("country")
+        .eq("id", user.id)
+        .single();
+
+      const country = profile?.country ?? null;
+      setViewerCountry(country);
+
+      const { currency: userCurrency } = getCurrencyForCountry(country);
+      if (userCurrency !== "USD") {
+        try {
+          const res = await fetch("/api/exchange-rates");
+          const data = await res.json();
+          const rate = data?.rates?.[userCurrency];
+          if (rate) setExchangeRate(rate);
+        } catch {
+          // fall back to USD-only input if rates can't be fetched
+        }
+      }
+    }
+    loadCountryAndRate();
+  }, [supabase]);
 
   function addSkill() {
     const value = skillInput.trim();
@@ -72,13 +106,18 @@ export default function NewProjectPage() {
       return;
     }
 
+    // Rates are stored canonically in USD across the app (payments, matching, display
+    // conversion) — if the client entered them in their local currency, convert back now.
+    const toUsd = (localAmount: number) =>
+      currency !== "USD" && exchangeRate ? localAmount / exchangeRate : localAmount;
+
     const { error: insertError } = await supabase.from("projects").insert({
       client_id: user.id,
       title,
       description,
       rate_type: rateType,
-      budget_min: Number(rateMin),
-      budget_max: rateType === "range" ? Number(rateMax) : Number(rateMin),
+      budget_min: toUsd(Number(rateMin)),
+      budget_max: rateType === "range" ? toUsd(Number(rateMax)) : toUsd(Number(rateMin)),
       duration,
       weekly_commitment: commitment,
       skills,
@@ -197,7 +236,7 @@ export default function NewProjectPage() {
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-sm"
                 style={{ color: "var(--ink-faint)" }}
               >
-                $
+                {symbol}
               </span>
               <input
                 type="number"
@@ -216,7 +255,7 @@ export default function NewProjectPage() {
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-sm"
                   style={{ color: "var(--ink-faint)" }}
                 >
-                  $
+                  {symbol}
                 </span>
                 <input
                   type="number"
@@ -233,7 +272,7 @@ export default function NewProjectPage() {
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-sm"
                   style={{ color: "var(--ink-faint)" }}
                 >
-                  $
+                  {symbol}
                 </span>
                 <input
                   type="number"
@@ -246,6 +285,11 @@ export default function NewProjectPage() {
                 />
               </div>
             </div>
+          )}
+          {currency !== "USD" && (
+            <p className="text-xs mt-2" style={{ color: "var(--ink-faint)" }}>
+              Entered in {currency} — shown to freelancers converted to their own currency.
+            </p>
           )}
         </div>
 
