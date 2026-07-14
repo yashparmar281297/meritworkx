@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function Footer() {
   return (
     <footer className="section-line px-4 sm:px-6 py-12 sm:py-16" style={{ background: "var(--surface)" }}>
-      <div className="max-w-7xl mx-auto grid sm:grid-cols-2 md:grid-cols-3 gap-8 sm:gap-10">
+      <div className="max-w-7xl mx-auto grid sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10">
         <div>
           <div className="flex items-center gap-2 font-semibold text-lg mb-3" style={{ color: "var(--ink)" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -30,6 +30,15 @@ export default function Footer() {
             <li><Link href="#" className="hover:text-[var(--ink)]">About us</Link></li>
             <li><Link href="#" className="hover:text-[var(--ink)]">Contact</Link></li>
             <li><Link href="#" className="hover:text-[var(--ink)]">Careers</Link></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="text-sm font-semibold mb-4" style={{ color: "var(--ink)" }}>Legal</h4>
+          <ul className="space-y-2 text-sm" style={{ color: "var(--ink-soft)" }}>
+            <li><Link href="/terms" className="hover:text-[var(--ink)]">Terms &amp; Conditions</Link></li>
+            <li><Link href="/privacy" className="hover:text-[var(--ink)]">Privacy Policy</Link></li>
+            <li><Link href="/refund-policy" className="hover:text-[var(--ink)]">Refund Policy</Link></li>
           </ul>
         </div>
       </div>
