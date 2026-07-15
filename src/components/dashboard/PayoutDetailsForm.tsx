@@ -120,7 +120,16 @@ export default function PayoutDetailsForm({
       )}
 
       {method === "bank_transfer" ? (
-        <div className="flex flex-col gap-4">
+        <div
+          className="rounded-xl border p-4 flex flex-col gap-3"
+          style={{ background: "var(--surface)", borderColor: "var(--line)" }}
+        >
+          <h3
+            className="text-xs font-semibold uppercase tracking-wide"
+            style={{ color: "var(--ink-faint)" }}
+          >
+            Bank Details
+          </h3>
           <div>
             <label className="text-sm font-medium mb-1 block" style={{ color: "var(--ink)" }}>
               Account holder name
@@ -133,29 +142,31 @@ export default function PayoutDetailsForm({
               style={inputStyle}
             />
           </div>
-          <div>
-            <label className="text-sm font-medium mb-1 block" style={{ color: "var(--ink)" }}>
-              Account number
-            </label>
-            <input
-              type="text"
-              value={bank.account_number}
-              onChange={(e) => setBank({ ...bank, account_number: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-lg border outline-none text-sm"
-              style={inputStyle}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium mb-1 block" style={{ color: "var(--ink)" }}>
-              IFSC code
-            </label>
-            <input
-              type="text"
-              value={bank.ifsc}
-              onChange={(e) => setBank({ ...bank, ifsc: e.target.value.toUpperCase() })}
-              className="w-full px-4 py-2.5 rounded-lg border outline-none text-sm"
-              style={inputStyle}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm font-medium mb-1 block" style={{ color: "var(--ink)" }}>
+                Account number
+              </label>
+              <input
+                type="text"
+                value={bank.account_number}
+                onChange={(e) => setBank({ ...bank, account_number: e.target.value })}
+                className="w-full px-4 py-2.5 rounded-lg border outline-none text-sm"
+                style={inputStyle}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block" style={{ color: "var(--ink)" }}>
+                IFSC code
+              </label>
+              <input
+                type="text"
+                value={bank.ifsc}
+                onChange={(e) => setBank({ ...bank, ifsc: e.target.value.toUpperCase() })}
+                className="w-full px-4 py-2.5 rounded-lg border outline-none text-sm"
+                style={inputStyle}
+              />
+            </div>
           </div>
         </div>
       ) : (

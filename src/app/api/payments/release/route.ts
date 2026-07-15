@@ -44,11 +44,35 @@ export async function POST(request: Request) {
 
   const [{ data: client }, { data: freelancer }] = await Promise.all([
     supabase.from("profiles").select("full_name, email").eq("id", payment.client_id).single(),
-    supabase.from("profiles").select("full_name, email").eq("id", payment.freelancer_id).single(),
+    supabase
+      .from("profiles")
+      .select("full_name, email, payout_method, payout_details")
+      .eq("id", payment.freelancer_id)
+      .single(),
   ]);
 
   const projectName = payment.project_name ?? "your project";
   const netAmount = Number(payment.amount).toFixed(2);
+
+  function formatPayoutDetails(): string {
+    const details = freelancer?.payout_details as Record<string, string> | null;
+    if (!freelancer?.payout_method || !details) {
+      return "<p style=\"color:#DC2626\">No payout details on file for this freelancer yet — ask them to add it in Settings.</p>";
+    }
+    if (freelancer.payout_method === "bank_transfer") {
+      return `<ul>
+<li><strong>Method:</strong> Bank transfer</li>
+<li><strong>Account holder:</strong> ${details.account_holder ?? "—"}</li>
+<li><strong>Account number:</strong> ${details.account_number ?? "—"}</li>
+<li><strong>IFSC code:</strong> ${details.ifsc ?? "—"}</li>
+</ul>`;
+    }
+    const label = freelancer.payout_method === "paypal" ? "PayPal" : "Wise";
+    return `<ul>
+<li><strong>Method:</strong> ${label}</li>
+<li><strong>Email:</strong> ${details.email ?? "—"}</li>
+</ul>`;
+  }
 
   if (client?.email) {
     await sendEmail({
@@ -67,6 +91,16 @@ export async function POST(request: Request) {
       html: `<p>Hi ${freelancer.full_name ?? "there"},</p>
 <p>You've received <strong>$${netAmount}</strong> for <strong>${projectName}</strong> from <strong>${client?.full_name ?? "the client"}</strong>.</p>
 <p>This payment has been released from escrow and is now in your account.</p>`,
+    });
+  }
+
+  if (process.env.ADMIN_EMAIL) {
+    await sendEmail({
+      to: process.env.ADMIN_EMAIL,
+      subject: `Action needed: transfer $${netAmount} to ${freelancer?.full_name ?? "freelancer"} — ${projectName}`,
+      html: `<p>${client?.full_name ?? "A client"} approved and released payment for <strong>${projectName}</strong>.</p>
+<p>Send <strong>$${netAmount}</strong> to <strong>${freelancer?.full_name ?? "the freelancer"}</strong> (${freelancer?.email ?? "no email on file"}) using:</p>
+${formatPayoutDetails()}`,
     });
   }
 
