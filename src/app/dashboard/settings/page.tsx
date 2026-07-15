@@ -15,7 +15,7 @@ export default async function SettingsPage() {
  const { data: profile } = await supabase
   .from("profiles")
   .select(
-    "full_name, email, company_name, bio, avatar_url, id_document_url, notifications_enabled, role, skills, verification_status, verification_score, verification_summary, phone_verified, business_email_verified, country, city, token_plan, subscription_expires_at, subscription_cancel_requested, payout_method, payout_details"
+    "full_name, email, company_name, bio, avatar_url, id_document_url, notifications_enabled, role, skills, verification_status, verification_score, verification_summary, business_email_verified, country, city, token_plan, subscription_expires_at, subscription_cancel_requested, payout_method, payout_details"
   )
   .eq("id", user.id)
   .single();
@@ -68,7 +68,6 @@ export default async function SettingsPage() {
     initialStatus={profile?.verification_status ?? "unverified"}
     initialScore={profile?.verification_score ?? 0}
     initialSummary={profile?.verification_summary ?? null}
-    initialPhoneVerified={profile?.phone_verified ?? false}
     initialBusinessEmailVerified={profile?.business_email_verified ?? false}
   />
 </div>

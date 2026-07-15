@@ -2,44 +2,24 @@
 
 import { useState } from "react";
 import { Check, X, Loader2, ShieldCheck } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
-
-type Checklist = {
-  emailVerified: boolean;
-  phoneVerified: boolean;
-  idUploaded: boolean;
-  paymentVerified: boolean;
-  profileComplete: boolean;
-};
 
 export default function VerificationPanel({
   role,
   initialStatus,
   initialScore,
   initialSummary,
-  initialPhoneVerified,
   initialBusinessEmailVerified,
 }: {
   role: string;
   initialStatus: string;
   initialScore: number;
   initialSummary: string | null;
-  initialPhoneVerified: boolean;
   initialBusinessEmailVerified: boolean;
 }) {
-  const supabase = createClient();
-
   const [status, setStatus] = useState(initialStatus);
   const [score, setScore] = useState(initialScore);
   const [summary, setSummary] = useState(initialSummary ?? "");
   const [checking, setChecking] = useState(false);
-
-  const [phoneVerified, setPhoneVerified] = useState(initialPhoneVerified);
-  const [phone, setPhone] = useState("");
-  const [phoneCode, setPhoneCode] = useState("");
-  const [phoneStep, setPhoneStep] = useState<"idle" | "sent">("idle");
-  const [phoneError, setPhoneError] = useState("");
-  const [phoneLoading, setPhoneLoading] = useState(false);
 
   const [emailVerified, setEmailVerified] = useState(initialBusinessEmailVerified);
   const [businessEmail, setBusinessEmail] = useState("");
@@ -47,39 +27,6 @@ export default function VerificationPanel({
   const [emailStep, setEmailStep] = useState<"idle" | "sent">("idle");
   const [emailError, setEmailError] = useState("");
   const [emailLoading, setEmailLoading] = useState(false);
-
-  async function sendPhoneOtp() {
-    setPhoneError("");
-    setPhoneLoading(true);
-    const res = await fetch("/api/verification/send-phone-otp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phoneNumber: phone }),
-    });
-    const data = await res.json();
-    if (!res.ok) setPhoneError(data.error);
-    else {
-      setPhoneStep("sent");
-    }
-    setPhoneLoading(false);
-  }
-
-  async function verifyPhoneOtp() {
-    setPhoneError("");
-    setPhoneLoading(true);
-    const res = await fetch("/api/verification/verify-phone-otp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phoneNumber: phone, code: phoneCode }),
-    });
-    const data = await res.json();
-    if (!res.ok) setPhoneError(data.error);
-    else {
-      setPhoneVerified(true);
-      setPhoneStep("idle");
-    }
-    setPhoneLoading(false);
-  }
 
   async function sendEmailOtp() {
     setEmailError("");
@@ -153,72 +100,6 @@ export default function VerificationPanel({
           {summary}
         </p>
       )}
-
-      {/* Phone verification */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          {phoneVerified ? (
-            <Check size={15} style={{ color: "var(--good)" }} />
-          ) : (
-            <X size={15} style={{ color: "var(--ink-faint)" }} />
-          )}
-          <p className="text-sm font-medium" style={{ color: "var(--ink)" }}>
-            Phone number
-          </p>
-        </div>
-
-        {!phoneVerified && (
-          <div className="flex flex-col gap-2 pl-6">
-            {phoneStep === "idle" ? (
-              <div className="flex gap-2">
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+91 98765 43210"
-                  className="px-3 py-2 rounded-lg border outline-none text-sm flex-1"
-                  style={inputStyle}
-                />
-                <button
-                  type="button"
-                  onClick={sendPhoneOtp}
-                  disabled={phoneLoading || !phone}
-                  className="px-4 py-2 rounded-lg text-xs font-semibold transition hover:opacity-90 disabled:opacity-60"
-                  style={{ background: "var(--yellow)", color: "var(--ink)" }}
-                >
-                  {phoneLoading ? <Loader2 size={13} className="animate-spin" /> : "Send code"}
-                </button>
-              </div>
-            ) : (
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={phoneCode}
-                  onChange={(e) => setPhoneCode(e.target.value)}
-                  placeholder="6-digit code"
-                  className="px-3 py-2 rounded-lg border outline-none text-sm flex-1"
-                  style={inputStyle}
-                />
-                <button
-                  type="button"
-                  onClick={verifyPhoneOtp}
-                  disabled={phoneLoading || !phoneCode}
-                  className="px-4 py-2 rounded-lg text-xs font-semibold transition hover:opacity-90 disabled:opacity-60"
-                  style={{ background: "var(--yellow)", color: "var(--ink)" }}
-                >
-                  {phoneLoading ? <Loader2 size={13} className="animate-spin" /> : "Verify"}
-                </button>
-              </div>
-            )}
-            {phoneStep === "sent" && !phoneError && (
-              <p className="text-xs" style={{ color: "var(--ink-faint)" }}>
-                Code sent via SMS — check your phone.
-              </p>
-            )}
-            {phoneError && <p className="text-xs" style={{ color: "var(--bad)" }}>{phoneError}</p>}
-          </div>
-        )}
-      </div>
 
       {/* Business email verification (client only) */}
       {role === "client" && (
