@@ -199,11 +199,14 @@ async function downloadBuffer(fileUrl: string): Promise<Buffer | null> {
   }
 }
 
-async function extractOfficeText(buffer: Buffer, extension: string): Promise<string | null> {
+async function extractOfficeText(buffer: Buffer): Promise<string | null> {
   try {
     const officeParser = await import("officeparser");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ast = await officeParser.parseOffice(buffer, { fileType: extension } as any);
+    // `fileType` is not a real OfficeParserConfig option — the package auto-detects
+    // format from the buffer's own magic bytes. `ocr: true` is the important part:
+    // without it, scanned pages and image-based content are silently skipped,
+    // producing a near-empty extraction even though the file clearly has content.
+    const ast = await officeParser.parseOffice(buffer, { ocr: true });
     const text = typeof ast.toText === "function" ? ast.toText() : String(ast);
     return text?.trim().slice(0, MAX_CONTENT_CHARS) || null;
   } catch (err) {
@@ -260,7 +263,7 @@ async function extractFileContent(fileUrl: string, fileName: string): Promise<st
   if (!buffer) return null;
 
   if (OFFICE_EXTENSIONS.includes(extension)) {
-    return extractOfficeText(buffer, extension);
+    return extractOfficeText(buffer);
   }
   if (extension === "zip") {
     return extractZipSummary(buffer);
