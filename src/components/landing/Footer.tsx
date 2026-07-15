@@ -27,9 +27,8 @@ export default function Footer() {
         <div>
           <h4 className="text-sm font-semibold mb-4" style={{ color: "var(--ink)" }}>Company</h4>
           <ul className="space-y-2 text-sm" style={{ color: "var(--ink-soft)" }}>
-            <li><Link href="#" className="hover:text-[var(--ink)]">About us</Link></li>
-            <li><Link href="#" className="hover:text-[var(--ink)]">Contact</Link></li>
-            <li><Link href="#" className="hover:text-[var(--ink)]">Careers</Link></li>
+            <li><Link href="/about" className="hover:text-[var(--ink)]">About us</Link></li>
+            <li><Link href="/contact" className="hover:text-[var(--ink)]">Contact</Link></li>
           </ul>
         </div>
 
