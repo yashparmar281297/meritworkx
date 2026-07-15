@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { sendSms } from "@/lib/sms";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -8,6 +9,8 @@ export async function POST(request: NextRequest) {
 
   const { phoneNumber } = await request.json();
   if (!phoneNumber) return NextResponse.json({ error: "Phone number required" }, { status: 400 });
+
+  const normalizedPhone = phoneNumber.replace(/[\s-]/g, "");
 
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
@@ -19,8 +22,10 @@ export async function POST(request: NextRequest) {
     expires_at: expiresAt,
   });
 
-  // TODO (production): send `code` via Twilio/MSG91/etc. instead of returning it.
-  console.log(`[DEV] Phone OTP for ${phoneNumber}: ${code}`);
+  await sendSms({
+    to: normalizedPhone,
+    body: `Your MeritWorkX verification code is ${code}. It expires in 10 minutes.`,
+  });
 
-  return NextResponse.json({ sent: true, devCode: code });
+  return NextResponse.json({ sent: true });
 }

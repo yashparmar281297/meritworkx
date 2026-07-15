@@ -38,7 +38,7 @@ export default function LegalLayout({
 
         <div className="flex flex-wrap gap-4 mt-8 text-sm">
           <Link href="/terms" className="font-medium transition hover:opacity-70" style={{ color: "var(--yellow-deep)" }}>
-            Terms &amp; Conditions
+            Terms of Service
           </Link>
           <Link href="/privacy" className="font-medium transition hover:opacity-70" style={{ color: "var(--yellow-deep)" }}>
             Privacy Policy

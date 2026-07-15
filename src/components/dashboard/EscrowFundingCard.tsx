@@ -204,7 +204,7 @@ export default function EscrowFundingCard({
         style={{ background: "var(--yellow)", color: "var(--ink)" }}
       >
         {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-        {loading ? "Processing..." : "Fund Escrow via Razorpay"}
+        {loading ? "Processing..." : "Make Payment"}
       </button>
     </div>
   );

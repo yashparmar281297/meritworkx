@@ -72,7 +72,7 @@ export default function RefundPolicyPage() {
         <p>
           Tokens spent applying to a project are not refunded if a proposal is rejected. Tokens are
           credited back automatically if a proposal is shortlisted or the Freelancer is hired, per our
-          Terms &amp; Conditions.
+          Terms of Service.
         </p>
       </div>
 

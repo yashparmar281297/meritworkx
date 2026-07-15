@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email";
+import { formatPayoutDetailsHtml } from "@/lib/payout";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -54,26 +55,6 @@ export async function POST(request: Request) {
   const projectName = payment.project_name ?? "your project";
   const netAmount = Number(payment.amount).toFixed(2);
 
-  function formatPayoutDetails(): string {
-    const details = freelancer?.payout_details as Record<string, string> | null;
-    if (!freelancer?.payout_method || !details) {
-      return "<p style=\"color:#DC2626\">No payout details on file for this freelancer yet — ask them to add it in Settings.</p>";
-    }
-    if (freelancer.payout_method === "bank_transfer") {
-      return `<ul>
-<li><strong>Method:</strong> Bank transfer</li>
-<li><strong>Account holder:</strong> ${details.account_holder ?? "—"}</li>
-<li><strong>Account number:</strong> ${details.account_number ?? "—"}</li>
-<li><strong>IFSC code:</strong> ${details.ifsc ?? "—"}</li>
-</ul>`;
-    }
-    const label = freelancer.payout_method === "paypal" ? "PayPal" : "Wise";
-    return `<ul>
-<li><strong>Method:</strong> ${label}</li>
-<li><strong>Email:</strong> ${details.email ?? "—"}</li>
-</ul>`;
-  }
-
   if (client?.email) {
     await sendEmail({
       to: client.email,
@@ -97,10 +78,10 @@ export async function POST(request: Request) {
   if (process.env.ADMIN_EMAIL) {
     await sendEmail({
       to: process.env.ADMIN_EMAIL,
-      subject: `Action needed: transfer $${netAmount} to ${freelancer?.full_name ?? "freelancer"} — ${projectName}`,
+      subject: `Payment released — $${netAmount} now available for ${freelancer?.full_name ?? "freelancer"} to withdraw`,
       html: `<p>${client?.full_name ?? "A client"} approved and released payment for <strong>${projectName}</strong>.</p>
-<p>Send <strong>$${netAmount}</strong> to <strong>${freelancer?.full_name ?? "the freelancer"}</strong> (${freelancer?.email ?? "no email on file"}) using:</p>
-${formatPayoutDetails()}`,
+<p><strong>$${netAmount}</strong> is now available in <strong>${freelancer?.full_name ?? "the freelancer"}</strong>'s (${freelancer?.email ?? "no email on file"}) balance. No action needed yet — you'll get a separate email with their payout details when they actually request a withdrawal.</p>
+${formatPayoutDetailsHtml(freelancer?.payout_method ?? null, freelancer?.payout_details as Record<string, string> | null)}`,
     });
   }
 

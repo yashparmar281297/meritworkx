@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { sendEmail } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -19,8 +20,11 @@ export async function POST(request: NextRequest) {
     expires_at: expiresAt,
   });
 
-  // TODO (production): send `code` via a real email provider (Resend/SendGrid) instead of returning it.
-  console.log(`[DEV] Email OTP for ${email}: ${code}`);
+  await sendEmail({
+    to: email,
+    subject: "Your MeritWorkX verification code",
+    html: `<p>Your verification code is: <strong style="font-size:20px">${code}</strong></p><p>This code expires in 10 minutes.</p>`,
+  });
 
-  return NextResponse.json({ sent: true, devCode: code });
+  return NextResponse.json({ sent: true });
 }

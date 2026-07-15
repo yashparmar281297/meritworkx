@@ -38,7 +38,6 @@ export default function VerificationPanel({
   const [phone, setPhone] = useState("");
   const [phoneCode, setPhoneCode] = useState("");
   const [phoneStep, setPhoneStep] = useState<"idle" | "sent">("idle");
-  const [phoneDevCode, setPhoneDevCode] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [phoneLoading, setPhoneLoading] = useState(false);
 
@@ -46,7 +45,6 @@ export default function VerificationPanel({
   const [businessEmail, setBusinessEmail] = useState("");
   const [emailCode, setEmailCode] = useState("");
   const [emailStep, setEmailStep] = useState<"idle" | "sent">("idle");
-  const [emailDevCode, setEmailDevCode] = useState("");
   const [emailError, setEmailError] = useState("");
   const [emailLoading, setEmailLoading] = useState(false);
 
@@ -62,7 +60,6 @@ export default function VerificationPanel({
     if (!res.ok) setPhoneError(data.error);
     else {
       setPhoneStep("sent");
-      setPhoneDevCode(data.devCode);
     }
     setPhoneLoading(false);
   }
@@ -96,7 +93,6 @@ export default function VerificationPanel({
     if (!res.ok) setEmailError(data.error);
     else {
       setEmailStep("sent");
-      setEmailDevCode(data.devCode);
     }
     setEmailLoading(false);
   }
@@ -214,9 +210,9 @@ export default function VerificationPanel({
                 </button>
               </div>
             )}
-            {phoneDevCode && (
+            {phoneStep === "sent" && !phoneError && (
               <p className="text-xs" style={{ color: "var(--ink-faint)" }}>
-                DEV MODE — your code is: <strong>{phoneDevCode}</strong>
+                Code sent via SMS — check your phone.
               </p>
             )}
             {phoneError && <p className="text-xs" style={{ color: "var(--bad)" }}>{phoneError}</p>}
@@ -281,9 +277,9 @@ export default function VerificationPanel({
                   </button>
                 </div>
               )}
-              {emailDevCode && (
+              {emailStep === "sent" && !emailError && (
                 <p className="text-xs" style={{ color: "var(--ink-faint)" }}>
-                  DEV MODE — your code is: <strong>{emailDevCode}</strong>
+                  Code sent via email — check your inbox.
                 </p>
               )}
               {emailError && <p className="text-xs" style={{ color: "var(--bad)" }}>{emailError}</p>}

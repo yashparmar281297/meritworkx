@@ -35,7 +35,7 @@ export default function Footer() {
         <div>
           <h4 className="text-sm font-semibold mb-4" style={{ color: "var(--ink)" }}>Legal</h4>
           <ul className="space-y-2 text-sm" style={{ color: "var(--ink-soft)" }}>
-            <li><Link href="/terms" className="hover:text-[var(--ink)]">Terms &amp; Conditions</Link></li>
+            <li><Link href="/terms" className="hover:text-[var(--ink)]">Terms of Service</Link></li>
             <li><Link href="/privacy" className="hover:text-[var(--ink)]">Privacy Policy</Link></li>
             <li><Link href="/refund-policy" className="hover:text-[var(--ink)]">Refund Policy</Link></li>
           </ul>
