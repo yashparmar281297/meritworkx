@@ -66,7 +66,7 @@ export default function PriceDisplay({
       const converted = usdAmount * rate;
       const formatted = converted.toLocaleString(undefined, { maximumFractionDigits: 0 });
 
-      if (!cancelled) setDisplayText(`${symbol}${formatted} (~$${usdAmount.toLocaleString("en-US")})`);
+      if (!cancelled) setDisplayText(`${symbol}${formatted}`);
     }
 
     convert();
