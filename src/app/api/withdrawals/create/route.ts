@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email";
 import { formatPayoutDetailsHtml } from "@/lib/payout";
+import { convertUsdToCountry } from "@/lib/exchangeRates";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
   const [{ data: freelancer }, { data: releasedPayments }, { data: existingWithdrawals }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("full_name, email, payout_method, payout_details")
+      .select("full_name, email, country, payout_method, payout_details")
       .eq("id", user.id)
       .single(),
     supabase
@@ -47,8 +48,9 @@ export async function POST(request: Request) {
   const availableBalance = totalEarned - totalWithdrawn;
 
   if (requestedAmount > availableBalance) {
+    const maxLocal = await convertUsdToCountry(availableBalance, freelancer.country);
     return NextResponse.json(
-      { error: `You can withdraw up to $${availableBalance.toFixed(2)}.` },
+      { error: `You can withdraw up to ${maxLocal.formatted}.` },
       { status: 400 }
     );
   }
@@ -66,10 +68,11 @@ export async function POST(request: Request) {
   }
 
   if (process.env.ADMIN_EMAIL) {
+    const requestedLocal = await convertUsdToCountry(requestedAmount, freelancer.country);
     await sendEmail({
       to: process.env.ADMIN_EMAIL,
-      subject: `Action needed: send $${requestedAmount.toFixed(2)} to ${freelancer.full_name ?? "a freelancer"}`,
-      html: `<p><strong>${freelancer.full_name ?? "A freelancer"}</strong> (${freelancer.email ?? "no email on file"}) requested a withdrawal of <strong>$${requestedAmount.toFixed(2)}</strong>.</p>
+      subject: `Action needed: send ${requestedLocal.formatted} to ${freelancer.full_name ?? "a freelancer"}`,
+      html: `<p><strong>${freelancer.full_name ?? "A freelancer"}</strong> (${freelancer.email ?? "no email on file"}) requested a withdrawal of <strong>${requestedLocal.formatted}</strong>.</p>
 <p>Send it using:</p>
 ${formatPayoutDetailsHtml(freelancer.payout_method, freelancer.payout_details as Record<string, string>)}`,
     });

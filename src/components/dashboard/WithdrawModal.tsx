@@ -1,16 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, X } from "lucide-react";
+import { getCurrencyForCountry } from "@/lib/currency";
 
-export default function WithdrawModal({ availableBalance }: { availableBalance: number }) {
+export default function WithdrawModal({
+  availableBalance,
+  viewerCountry,
+}: {
+  availableBalance: number;
+  viewerCountry?: string | null;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+  const [exchangeRate, setExchangeRate] = useState<number | null>(null);
+
+  const { currency, symbol } = getCurrencyForCountry(viewerCountry);
+  const isUsd = currency === "USD";
+  const rate = isUsd ? 1 : exchangeRate;
+  const rateReady = isUsd || rate !== null;
+  const availableBalanceLocal = rate ? availableBalance * rate : availableBalance;
+
+  useEffect(() => {
+    if (isUsd || !open) return;
+    let cancelled = false;
+    fetch("/api/exchange-rates")
+      .then((r) => r.json())
+      .then((data) => {
+        const r = data?.rates?.[currency];
+        if (!cancelled && r) setExchangeRate(r);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [currency, isUsd, open]);
 
   function close() {
     setOpen(false);
@@ -21,14 +50,19 @@ export default function WithdrawModal({ availableBalance }: { availableBalance: 
 
   async function handleWithdraw() {
     setError("");
-    const value = Number(amount);
+    const localValue = Number(amount);
 
-    if (!value || value <= 0) {
+    if (!localValue || localValue <= 0) {
       setError("Enter a valid amount.");
       return;
     }
-    if (value > availableBalance) {
-      setError(`You can withdraw up to $${availableBalance.toFixed(2)}.`);
+    if (!rateReady) {
+      setError("Still loading today's exchange rate — try again in a moment.");
+      return;
+    }
+    const usdValue = rate ? localValue / rate : localValue;
+    if (usdValue > availableBalance) {
+      setError(`You can withdraw up to ${symbol}${availableBalanceLocal.toFixed(2)}.`);
       return;
     }
 
@@ -36,7 +70,7 @@ export default function WithdrawModal({ availableBalance }: { availableBalance: 
     const res = await fetch("/api/withdrawals/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount: value }),
+      body: JSON.stringify({ amount: usdValue }),
     });
     const data = await res.json();
 
@@ -103,22 +137,27 @@ export default function WithdrawModal({ availableBalance }: { availableBalance: 
             ) : (
               <>
                 <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
-                  Available balance: <strong style={{ color: "var(--ink)" }}>${availableBalance.toFixed(2)}</strong>
+                  Available balance:{" "}
+                  <strong style={{ color: "var(--ink)" }}>
+                    {symbol}
+                    {availableBalanceLocal.toFixed(2)}
+                  </strong>
                 </p>
 
                 <div>
                   <label className="text-sm font-medium mb-1 block" style={{ color: "var(--ink)" }}>
-                    Amount to withdraw (USD)
+                    Amount to withdraw {!isUsd && `(${currency})`}
                   </label>
                   <input
                     type="number"
                     min={0.01}
-                    max={availableBalance}
+                    max={availableBalanceLocal}
                     step="0.01"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    placeholder={`Up to $${availableBalance.toFixed(2)}`}
-                    className="w-full px-4 py-2.5 rounded-lg border outline-none text-sm"
+                    disabled={!rateReady}
+                    placeholder={rateReady ? `Up to ${symbol}${availableBalanceLocal.toFixed(2)}` : "Loading rate..."}
+                    className="w-full px-4 py-2.5 rounded-lg border outline-none text-sm disabled:opacity-60"
                     style={{ borderColor: "var(--line)", background: "var(--paper)", color: "var(--ink)" }}
                   />
                 </div>
@@ -132,7 +171,7 @@ export default function WithdrawModal({ availableBalance }: { availableBalance: 
                 <button
                   type="button"
                   onClick={handleWithdraw}
-                  disabled={submitting}
+                  disabled={submitting || !rateReady}
                   className="w-full py-3 rounded-full font-semibold flex items-center justify-center gap-2 transition hover:opacity-90 disabled:opacity-60"
                   style={{ background: "var(--yellow)", color: "var(--ink)" }}
                 >

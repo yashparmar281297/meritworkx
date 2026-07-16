@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email";
 import { formatPayoutDetailsHtml } from "@/lib/payout";
+import { convertUsdToCountry, convertUsdToInr } from "@/lib/exchangeRates";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -44,23 +45,29 @@ export async function POST(request: Request) {
   }
 
   const [{ data: client }, { data: freelancer }] = await Promise.all([
-    supabase.from("profiles").select("full_name, email").eq("id", payment.client_id).single(),
+    supabase.from("profiles").select("full_name, email, country").eq("id", payment.client_id).single(),
     supabase
       .from("profiles")
-      .select("full_name, email, payout_method, payout_details")
+      .select("full_name, email, country, payout_method, payout_details")
       .eq("id", payment.freelancer_id)
       .single(),
   ]);
 
   const projectName = payment.project_name ?? "your project";
-  const netAmount = Number(payment.amount).toFixed(2);
+  const netAmountUsd = Number(payment.amount);
+
+  const [clientAmount, freelancerAmount, adminAmount] = await Promise.all([
+    convertUsdToCountry(netAmountUsd, client?.country),
+    convertUsdToCountry(netAmountUsd, freelancer?.country),
+    convertUsdToInr(netAmountUsd),
+  ]);
 
   if (client?.email) {
     await sendEmail({
       to: client.email,
       subject: `Payment disbursed — ${projectName}`,
       html: `<p>Hi ${client.full_name ?? "there"},</p>
-<p>You've disbursed <strong>$${netAmount}</strong> to <strong>${freelancer?.full_name ?? "the freelancer"}</strong> for <strong>${projectName}</strong>.</p>
+<p>You've disbursed <strong>${clientAmount.formatted}</strong> to <strong>${freelancer?.full_name ?? "the freelancer"}</strong> for <strong>${projectName}</strong>.</p>
 <p>This payment has been released from escrow and is now marked complete.</p>`,
     });
   }
@@ -70,7 +77,7 @@ export async function POST(request: Request) {
       to: freelancer.email,
       subject: `You've been paid — ${projectName}`,
       html: `<p>Hi ${freelancer.full_name ?? "there"},</p>
-<p>You've received <strong>$${netAmount}</strong> for <strong>${projectName}</strong> from <strong>${client?.full_name ?? "the client"}</strong>.</p>
+<p>You've received <strong>${freelancerAmount.formatted}</strong> for <strong>${projectName}</strong> from <strong>${client?.full_name ?? "the client"}</strong>.</p>
 <p>This payment has been released from escrow and is now in your account.</p>`,
     });
   }
@@ -78,9 +85,9 @@ export async function POST(request: Request) {
   if (process.env.ADMIN_EMAIL) {
     await sendEmail({
       to: process.env.ADMIN_EMAIL,
-      subject: `Payment released — $${netAmount} now available for ${freelancer?.full_name ?? "freelancer"} to withdraw`,
+      subject: `Payment released — ${adminAmount.formatted} now available for ${freelancer?.full_name ?? "freelancer"} to withdraw`,
       html: `<p>${client?.full_name ?? "A client"} approved and released payment for <strong>${projectName}</strong>.</p>
-<p><strong>$${netAmount}</strong> is now available in <strong>${freelancer?.full_name ?? "the freelancer"}</strong>'s (${freelancer?.email ?? "no email on file"}) balance. No action needed yet — you'll get a separate email with their payout details when they actually request a withdrawal.</p>
+<p><strong>${adminAmount.formatted}</strong> is now available in <strong>${freelancer?.full_name ?? "the freelancer"}</strong>'s (${freelancer?.email ?? "no email on file"}) balance. No action needed yet — you'll get a separate email with their payout details when they actually request a withdrawal.</p>
 ${formatPayoutDetailsHtml(freelancer?.payout_method ?? null, freelancer?.payout_details as Record<string, string> | null)}`,
     });
   }

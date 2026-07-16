@@ -51,6 +51,7 @@ export default function EscrowFundingCard({
   const { currency, symbol } = getCurrencyForCountry(viewerCountry);
   const isUsd = currency === "USD";
   const rate = isUsd ? 1 : exchangeRate;
+  const rateReady = isUsd || rate !== null;
 
   useEffect(() => {
     if (isUsd) return;
@@ -76,6 +77,7 @@ export default function EscrowFundingCard({
   const displayTotal = rate ? totalUsd * rate : totalUsd;
 
   function handleAmountChange(localValue: number) {
+    if (!rateReady) return;
     setAmountUsd(rate ? localValue / rate : localValue);
   }
 
@@ -169,7 +171,9 @@ export default function EscrowFundingCard({
             min={1}
             value={Math.round(displayAmount * 100) / 100}
             onChange={(e) => handleAmountChange(Number(e.target.value))}
-            className="w-full pl-8 pr-3 py-2 rounded-lg border text-sm outline-none"
+            disabled={!rateReady}
+            placeholder={rateReady ? undefined : "Loading rate..."}
+            className="w-full pl-8 pr-3 py-2 rounded-lg border text-sm outline-none disabled:opacity-60"
             style={{ borderColor: "var(--line)", background: "var(--paper)", color: "var(--ink)" }}
           />
         </div>
@@ -199,7 +203,7 @@ export default function EscrowFundingCard({
       <button
         type="button"
         onClick={handlePay}
-        disabled={loading || amountUsd <= 0}
+        disabled={loading || amountUsd <= 0 || !rateReady}
         className="w-full py-2.5 rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition hover:opacity-90 disabled:opacity-60"
         style={{ background: "var(--yellow)", color: "var(--ink)" }}
       >

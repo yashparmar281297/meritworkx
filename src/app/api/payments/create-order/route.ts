@@ -1,18 +1,9 @@
 import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
 import { createClient } from "@/lib/supabase/server";
+import { convertUsdToInr } from "@/lib/exchangeRates";
 
 const FEE_RATE = 0.05;
-
-async function getUsdToInrRate(): Promise<number> {
-  try {
-    const res = await fetch("https://open.er-api.com/v6/latest/USD", { cache: "no-store" });
-    const data = await res.json();
-    return data?.rates?.INR ?? 83;
-  } catch {
-    return 83;
-  }
-}
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -79,8 +70,8 @@ export async function POST(request: Request) {
   const netPayout = projectValue - freelancerFee;
   const platformEarning = clientFee + freelancerFee;
 
-  const usdToInr = await getUsdToInrRate();
-  const amountInPaise = Math.round(totalCharged * usdToInr * 100);
+  const { amount: totalChargedInr } = await convertUsdToInr(totalCharged);
+  const amountInPaise = Math.round(totalChargedInr * 100);
 
   if (!process.env.RAZORPAY_KEY_SECRET || !process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) {
     return NextResponse.json({ error: "Razorpay is not configured yet" }, { status: 500 });

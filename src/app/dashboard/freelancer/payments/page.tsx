@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import PaymentRow from "@/components/dashboard/PaymentRow";
 import WithdrawModal from "@/components/dashboard/WithdrawModal";
+import { PriceDisplayInline } from "@/components/dashboard/PriceDisplay";
 
 const WITHDRAWAL_STATUS_STYLE: Record<string, { bg: string; color: string; label: string }> = {
   pending: { bg: "var(--surface-yellow)", color: "var(--yellow-deep)", label: "Pending" },
@@ -70,7 +71,7 @@ const viewerCountry = viewerProfile?.country ?? null;
               Total earned
             </p>
             <p className="text-xl font-bold" style={{ color: "var(--ink)" }}>
-              ${totalEarned.toFixed(2)}
+              <PriceDisplayInline amount={totalEarned} viewerCountry={viewerCountry} />
             </p>
           </div>
           <div>
@@ -78,11 +79,11 @@ const viewerCountry = viewerProfile?.country ?? null;
               Available balance
             </p>
             <p className="text-xl font-bold" style={{ color: "var(--ink)" }}>
-              ${availableBalance.toFixed(2)}
+              <PriceDisplayInline amount={availableBalance} viewerCountry={viewerCountry} />
             </p>
           </div>
         </div>
-        <WithdrawModal availableBalance={availableBalance} />
+        <WithdrawModal availableBalance={availableBalance} viewerCountry={viewerCountry} />
       </div>
 
       {withdrawalList.length > 0 && (
@@ -101,7 +102,7 @@ const viewerCountry = viewerProfile?.country ?? null;
                 >
                   <div>
                     <p className="text-sm font-semibold" style={{ color: "var(--ink)" }}>
-                      ${Number(w.amount).toFixed(2)}
+                      <PriceDisplayInline amount={Number(w.amount)} viewerCountry={viewerCountry} />
                     </p>
                     <p className="text-xs" style={{ color: "var(--ink-faint)" }}>
                       {new Date(w.created_at).toLocaleDateString("en-US", {
