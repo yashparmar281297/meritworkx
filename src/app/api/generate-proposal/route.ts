@@ -124,7 +124,7 @@ Return ONLY the final proposal text. No preamble, no analysis notes, no markdown
       model: "gpt-5.4-mini",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
-      max_tokens: 1200,
+      max_completion_tokens: 1200,
     }),
   });
 
