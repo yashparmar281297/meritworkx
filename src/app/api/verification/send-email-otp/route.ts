@@ -20,11 +20,19 @@ export async function POST(request: NextRequest) {
     expires_at: expiresAt,
   });
 
-  await sendEmail({
+  const sent = await sendEmail({
     to: email,
     subject: "Your MeritWorkX verification code",
     html: `<p>Your verification code is: <strong style="font-size:20px">${code}</strong></p><p>This code expires in 10 minutes.</p>`,
   });
+
+  if (!sent) {
+    await supabase.from("email_otps").delete().eq("user_id", user.id).eq("code", code);
+    return NextResponse.json(
+      { error: "Could not send the verification email. Please try again in a moment." },
+      { status: 502 }
+    );
+  }
 
   return NextResponse.json({ sent: true });
 }

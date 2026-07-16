@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Contact form is not configured yet." }, { status: 500 });
   }
 
-  await sendEmail({
+  const sent = await sendEmail({
     to: process.env.ADMIN_EMAIL,
     subject: `New contact form message from ${name}`,
     html: `<p><strong>Name:</strong> ${name}</p>
@@ -20,6 +20,10 @@ export async function POST(request: Request) {
 <p><strong>Message:</strong></p>
 <p>${String(message).replace(/\n/g, "<br/>")}</p>`,
   });
+
+  if (!sent) {
+    return NextResponse.json({ error: "Could not send your message. Please try again in a moment." }, { status: 502 });
+  }
 
   return NextResponse.json({ success: true });
 }
