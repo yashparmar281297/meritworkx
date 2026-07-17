@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import EscrowFundingCard from "@/components/dashboard/EscrowFundingCard";
 import ClientPaymentRow from "@/components/dashboard/ClientPaymentRow";
+import { PriceDisplayInline } from "@/components/dashboard/PriceDisplay";
 
 export default async function ClientPaymentsPage() {
   const supabase = await createClient();
@@ -80,9 +81,9 @@ export default async function ClientPaymentsPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <SummaryCard label="In escrow (held)" value={totalHeld} />
-        <SummaryCard label="Released to freelancers" value={totalReleased} />
-        <SummaryCard label="Total project spend" value={totalSpent} />
+        <SummaryCard label="In escrow (held)" value={totalHeld} viewerCountry={viewerCountry} />
+        <SummaryCard label="Released to freelancers" value={totalReleased} viewerCountry={viewerCountry} />
+        <SummaryCard label="Total project spend" value={totalSpent} viewerCountry={viewerCountry} />
       </div>
 
       {totalSubscriptionsINR > 0 && (
@@ -144,14 +145,22 @@ export default async function ClientPaymentsPage() {
   );
 }
 
-function SummaryCard({ label, value }: { label: string; value: number }) {
+function SummaryCard({
+  label,
+  value,
+  viewerCountry,
+}: {
+  label: string;
+  value: number;
+  viewerCountry: string | null;
+}) {
   return (
     <div className="rounded-2xl border p-5" style={{ background: "var(--paper)", borderColor: "var(--line)" }}>
       <p className="text-xs font-medium mb-1" style={{ color: "var(--ink-faint)" }}>
         {label}
       </p>
       <p className="text-xl font-bold" style={{ color: "var(--ink)" }}>
-        ${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+        <PriceDisplayInline amount={value} viewerCountry={viewerCountry} />
       </p>
     </div>
   );
