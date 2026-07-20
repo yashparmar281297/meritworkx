@@ -42,10 +42,12 @@ export default async function AdminPage({
 
   const { data: allProfilesRaw } = await supabase
     .from("profiles")
-    .select("id, full_name, email, role, phone_number, company_name, country, city, created_at, token_plan, client_plan")
+    .select("id, full_name, email, role, phone_number, company_name, country, city, created_at, token_plan, client_plan, is_admin")
     .order("created_at", { ascending: false });
 
-  const allProfiles = allProfilesRaw ?? [];
+  // Admin accounts aren't real platform users — exclude them from every stat, the
+  // growth chart, and the table below.
+  const allProfiles = (allProfilesRaw ?? []).filter((p) => !p.is_admin);
   const countryScoped = country ? allProfiles.filter((p) => p.country === country) : allProfiles;
 
   const rows = countryScoped.filter(
