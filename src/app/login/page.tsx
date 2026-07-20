@@ -42,7 +42,7 @@ export default function LoginPage() {
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("role")
+      .select("role, is_admin")
       .eq("id", userId)
       .single();
 
@@ -52,7 +52,9 @@ export default function LoginPage() {
       return;
     }
 
-    if (profile.role === "client") {
+    if (profile.is_admin) {
+      router.push("/admin");
+    } else if (profile.role === "client") {
       router.push("/dashboard/client");
     } else {
       router.push("/dashboard/freelancer");
