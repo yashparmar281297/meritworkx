@@ -23,6 +23,9 @@
   --good-soft: #F0FDF4;
   --bad: #DC2626;
   --bad-soft: #FEF2F2;
+
+  --blue: #2563EB;
+  --blue-soft: #EFF6FF;
 }
 
 html {

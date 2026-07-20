@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { getCurrencyForCountry } from "@/lib/currency";
 
 declare global {
@@ -47,6 +47,7 @@ export default function EscrowFundingCard({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [exchangeRate, setExchangeRate] = useState<number | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const { currency, symbol } = getCurrencyForCountry(viewerCountry);
   const isUsd = currency === "USD";
@@ -82,6 +83,7 @@ export default function EscrowFundingCard({
   }
 
   async function handlePay() {
+    setShowConfirm(false);
     setError("");
     setLoading(true);
 
@@ -202,7 +204,7 @@ export default function EscrowFundingCard({
 
       <button
         type="button"
-        onClick={handlePay}
+        onClick={() => setShowConfirm(true)}
         disabled={loading || amountUsd <= 0 || !rateReady}
         className="w-full py-2.5 rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition hover:opacity-90 disabled:opacity-60"
         style={{ background: "var(--yellow)", color: "var(--ink)" }}
@@ -210,6 +212,68 @@ export default function EscrowFundingCard({
         {loading && <Loader2 className="w-4 h-4 animate-spin" />}
         {loading ? "Processing..." : "Make Payment"}
       </button>
+
+      {showConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.4)" }}
+          onClick={() => setShowConfirm(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border p-6 flex flex-col gap-4"
+            style={{ background: "var(--paper)", borderColor: "var(--line)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold" style={{ color: "var(--ink)" }}>
+                Confirm payment
+              </h2>
+              <button type="button" onClick={() => setShowConfirm(false)} aria-label="Close">
+                <X size={18} style={{ color: "var(--ink-faint)" }} />
+              </button>
+            </div>
+
+            <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
+              You&apos;re about to pay for <strong style={{ color: "var(--ink)" }}>{projectTitle}</strong>. This
+              charges your payment method now and holds the funds in escrow until you approve and release them.
+            </p>
+
+            <div className="text-sm flex flex-col gap-1.5 rounded-xl border p-4" style={{ borderColor: "var(--line)", background: "var(--surface)" }}>
+              <div className="flex justify-between" style={{ color: "var(--ink-soft)" }}>
+                <span>Project value</span>
+                <span>{symbol}{displayAmount.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between" style={{ color: "var(--ink-soft)" }}>
+                <span>Client fee (5%)</span>
+                <span>{symbol}{displayClientFee.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between font-semibold" style={{ color: "var(--ink)" }}>
+                <span>Total to pay</span>
+                <span>{symbol}{displayTotal.toFixed(2)}</span>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowConfirm(false)}
+                className="flex-1 py-2.5 rounded-full text-sm font-semibold border transition hover:bg-[var(--surface)]"
+                style={{ borderColor: "var(--line-strong)", color: "var(--ink)" }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handlePay}
+                className="flex-1 py-2.5 rounded-full text-sm font-semibold transition hover:opacity-90"
+                style={{ background: "var(--yellow)", color: "var(--ink)" }}
+              >
+                Confirm &amp; Pay
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
