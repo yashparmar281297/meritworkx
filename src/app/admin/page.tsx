@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: "Admin — MeritWorkX",
 };
 
+// Filter-driven stats page — never statically cache it, always compute fresh.
+export const dynamic = "force-dynamic";
+
 export default async function AdminPage({
   searchParams,
 }: {
