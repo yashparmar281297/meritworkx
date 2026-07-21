@@ -18,7 +18,10 @@ export default function RefundPolicyPage() {
         <p>
           When a Client funds a project, the full amount (project value + 5% Client fee) is collected and
           held by MeritWorkX as &quot;in escrow&quot; — it is not released to the Freelancer until the
-          Client reviews the delivered work and explicitly clicks &quot;Approve &amp; Release.&quot;
+          Client reviews the delivered work and explicitly clicks &quot;Approve &amp; Release.&quot; Once
+          released, the funds become available in the Freelancer&apos;s balance; after the Freelancer
+          submits a withdrawal request, the payout is typically transferred to their bank account, PayPal,
+          or Wise within <strong>3 to 5 working days</strong>.
         </p>
       </div>
 

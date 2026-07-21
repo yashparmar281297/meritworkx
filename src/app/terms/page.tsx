@@ -97,8 +97,8 @@ export default function TermsPage() {
           Client reviews the delivered work and clicks &quot;Approve &amp; Release.&quot; Upon release, the
           Freelancer&apos;s balance becomes available for withdrawal to the payout method they&apos;ve
           provided (bank transfer for India-based Freelancers; PayPal or Wise for international
-          Freelancers). We don&apos;t guarantee a specific disbursement timeline beyond reasonable
-          commercial effort following a withdrawal request.
+          Freelancers). Once the Freelancer submits a withdrawal request, funds are typically
+          transferred to their payout method within <strong>3 to 5 working days</strong>.
         </p>
       </div>
 
