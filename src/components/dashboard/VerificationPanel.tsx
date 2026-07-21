@@ -3,23 +3,36 @@
 import { useState } from "react";
 import { Check, X, Loader2, ShieldCheck } from "lucide-react";
 
+type Checklist = {
+  emailVerified: boolean;
+  idUploaded: boolean;
+  paymentVerified: boolean;
+  profileComplete: boolean;
+};
+
 export default function VerificationPanel({
   role,
   initialStatus,
   initialScore,
   initialSummary,
   initialBusinessEmailVerified,
+  initialChecklist,
+  initialMissingProfileFields,
 }: {
   role: string;
   initialStatus: string;
   initialScore: number;
   initialSummary: string | null;
   initialBusinessEmailVerified: boolean;
+  initialChecklist: Checklist;
+  initialMissingProfileFields: string[];
 }) {
   const [status, setStatus] = useState(initialStatus);
   const [score, setScore] = useState(initialScore);
   const [summary, setSummary] = useState(initialSummary ?? "");
   const [checking, setChecking] = useState(false);
+  const [checklist, setChecklist] = useState(initialChecklist);
+  const [missingProfileFields, setMissingProfileFields] = useState(initialMissingProfileFields);
 
   const [emailVerified, setEmailVerified] = useState(initialBusinessEmailVerified);
   const [businessEmail, setBusinessEmail] = useState("");
@@ -68,12 +81,45 @@ export default function VerificationPanel({
     setStatus(data.status);
     setScore(data.score);
     setSummary(data.summary);
+    if (data.checklist) setChecklist(data.checklist);
+    if (data.missingProfileFields) setMissingProfileFields(data.missingProfileFields);
     setChecking(false);
   }
 
   const inputStyle = { borderColor: "var(--line)", background: "var(--paper)", color: "var(--ink)" };
   const statusColor = status === "verified" ? "var(--good)" : status === "pending" ? "var(--yellow-deep)" : "var(--bad)";
   const statusBg = status === "verified" ? "var(--good-soft)" : status === "pending" ? "var(--surface-yellow)" : "var(--bad-soft)";
+
+  const checklistItems: { key: keyof Checklist; label: string; hint: string }[] = [
+    {
+      key: "emailVerified",
+      label: "Account email confirmed",
+      hint: "Confirm your account email (check your inbox for the confirmation link), or verify a business email below.",
+    },
+    {
+      key: "idUploaded",
+      label: "ID document uploaded",
+      hint: "Upload a government ID in the \"ID verification document\" field above.",
+    },
+    {
+      key: "paymentVerified",
+      label: "Payment activity",
+      hint:
+        role === "freelancer"
+          ? "Subscribe to a Pro or Elite plan to satisfy this check."
+          : "Fund at least one project via escrow to satisfy this check.",
+    },
+    {
+      key: "profileComplete",
+      label: "Profile complete",
+      hint:
+        missingProfileFields.length > 0
+          ? `Missing: ${missingProfileFields.join(", ")}.`
+          : "Fill in your full name, bio, profile photo, and " +
+            (role === "freelancer" ? "at least one skill" : "company name") +
+            " above.",
+    },
+  ];
 
   return (
     <div
@@ -101,9 +147,34 @@ export default function VerificationPanel({
         </p>
       )}
 
+      <div className="flex flex-col gap-3">
+        {checklistItems.map((item) => {
+          const done = checklist[item.key];
+          return (
+            <div key={item.key} className="flex items-start gap-2">
+              {done ? (
+                <Check size={15} className="mt-0.5 shrink-0" style={{ color: "var(--good)" }} />
+              ) : (
+                <X size={15} className="mt-0.5 shrink-0" style={{ color: "var(--bad)" }} />
+              )}
+              <div>
+                <p className="text-sm font-medium" style={{ color: "var(--ink)" }}>
+                  {item.label}
+                </p>
+                {!done && (
+                  <p className="text-xs mt-0.5" style={{ color: "var(--ink-faint)" }}>
+                    {item.hint}
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       {/* Business email verification (client only) */}
       {role === "client" && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 pt-2 border-t" style={{ borderColor: "var(--line)" }}>
           <div className="flex items-center gap-2">
             {emailVerified ? (
               <Check size={15} style={{ color: "var(--good)" }} />
@@ -111,9 +182,13 @@ export default function VerificationPanel({
               <X size={15} style={{ color: "var(--ink-faint)" }} />
             )}
             <p className="text-sm font-medium" style={{ color: "var(--ink)" }}>
-              Business email
+              Business email <span style={{ color: "var(--ink-faint)", fontWeight: 400 }}>(optional)</span>
             </p>
           </div>
+          <p className="text-xs pl-6" style={{ color: "var(--ink-faint)" }}>
+            Not required — your account email confirmation above already satisfies the email check. Only use
+            this if you&apos;d like to additionally prove a separate company email address.
+          </p>
 
           {!emailVerified && (
             <div className="flex flex-col gap-2 pl-6">
@@ -168,11 +243,6 @@ export default function VerificationPanel({
           )}
         </div>
       )}
-
-      <p className="text-xs" style={{ color: "var(--ink-faint)" }}>
-        The remaining checks — account email confirmation, ID document upload, payment activity, and profile
-        completeness — are read automatically from your account.
-      </p>
 
       <button
         type="button"

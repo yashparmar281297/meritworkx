@@ -1,15 +1,24 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+type Checklist = {
+  emailVerified: boolean;
+  idUploaded: boolean;
+  paymentVerified: boolean;
+  profileComplete: boolean;
+};
+
+type ChecklistResult = {
+  checklist: Checklist;
+  missingProfileFields: string[];
+  score: number;
+};
+
 type VerificationResult = {
   status: "verified" | "pending" | "unverified";
   score: number;
   summary: string;
-  checklist: {
-    emailVerified: boolean;
-    idUploaded: boolean;
-    paymentVerified: boolean;
-    profileComplete: boolean;
-  };
+  checklist: Checklist;
+  missingProfileFields: string[];
 };
 
 async function callOpenAI(prompt: string) {
@@ -30,10 +39,13 @@ async function callOpenAI(prompt: string) {
   return data.choices?.[0]?.message?.content?.trim() ?? "";
 }
 
-export async function computeVerification(
+// Cheap, side-effect-free checklist computation — safe to call on every page load
+// (no OpenAI call, no DB write). Used for display; computeVerification below wraps
+// this with the AI summary + DB write for the explicit "Run verification check" flow.
+export async function getVerificationChecklist(
   supabase: SupabaseClient,
   userId: string
-): Promise<VerificationResult> {
+): Promise<ChecklistResult> {
   const { data: profile } = await supabase
     .from("profiles")
     .select("role, full_name, bio, avatar_url, skills, company_name, business_email_verified, id_document_url")
@@ -42,10 +54,9 @@ export async function computeVerification(
 
   if (!profile) {
     return {
-      status: "unverified",
-      score: 0,
-      summary: "Profile not found.",
       checklist: { emailVerified: false, idUploaded: false, paymentVerified: false, profileComplete: false },
+      missingProfileFields: [],
+      score: 0,
     };
   }
 
@@ -72,25 +83,57 @@ export async function computeVerification(
     paymentVerified = (clientPayments ?? []).length > 0;
   }
 
-  const requiredFields =
+  const requiredFields: { label: string; value: unknown }[] =
     profile.role === "freelancer"
-      ? [profile.full_name, profile.bio, profile.avatar_url, profile.skills?.length ? "x" : null]
-      : [profile.full_name, profile.bio, profile.avatar_url, profile.company_name];
-  const filledCount = requiredFields.filter(Boolean).length;
-  const profileComplete = filledCount === requiredFields.length;
+      ? [
+          { label: "full name", value: profile.full_name },
+          { label: "bio", value: profile.bio },
+          { label: "profile photo", value: profile.avatar_url },
+          { label: "at least one skill", value: profile.skills?.length ? "x" : null },
+        ]
+      : [
+          { label: "full name", value: profile.full_name },
+          { label: "bio", value: profile.bio },
+          { label: "profile photo", value: profile.avatar_url },
+          { label: "company name", value: profile.company_name },
+        ];
+  const missingProfileFields = requiredFields.filter((f) => !f.value).map((f) => f.label);
+  const profileComplete = missingProfileFields.length === 0;
 
   const checklist = { emailVerified, idUploaded, paymentVerified, profileComplete };
   const passedCount = Object.values(checklist).filter(Boolean).length;
   const score = Math.round((passedCount / 4) * 100);
 
+  return { checklist, missingProfileFields, score };
+}
+
+export async function computeVerification(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<VerificationResult> {
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).single();
+
+  if (!profile) {
+    return {
+      status: "unverified",
+      score: 0,
+      summary: "Profile not found.",
+      checklist: { emailVerified: false, idUploaded: false, paymentVerified: false, profileComplete: false },
+      missingProfileFields: [],
+    };
+  }
+
+  const { checklist, missingProfileFields, score } = await getVerificationChecklist(supabase, userId);
+  const passedCount = Object.values(checklist).filter(Boolean).length;
+
   const status: VerificationResult["status"] = score === 100 ? "verified" : score >= 60 ? "pending" : "unverified";
 
   const summaryPrompt = `Write ONE short, plain-language sentence (under 20 words) summarizing this ${profile.role}'s verification state for a freelance marketplace. Be factual, no fluff.
 
-Email verified: ${emailVerified}
-ID document uploaded: ${idUploaded}
-Payment verified: ${paymentVerified}
-Profile complete: ${profileComplete}
+Email verified: ${checklist.emailVerified}
+ID document uploaded: ${checklist.idUploaded}
+Payment verified: ${checklist.paymentVerified}
+Profile complete: ${checklist.profileComplete}
 Overall score: ${score}/100`;
 
   const summary = (await callOpenAI(summaryPrompt)) || `${passedCount} of 4 verification checks passed.`;
@@ -105,5 +148,5 @@ Overall score: ${score}/100`;
     })
     .eq("id", userId);
 
-  return { status, score, summary, checklist };
+  return { status, score, summary, checklist, missingProfileFields };
 }

@@ -5,6 +5,7 @@ import VerificationPanel from "@/components/dashboard/VerificationPanel";
 import SubscriptionCard from "@/components/dashboard/SubscriptionCard";
 import PayoutDetailsForm from "@/components/dashboard/PayoutDetailsForm";
 import BackButton from "@/components/dashboard/BackButton";
+import { getVerificationChecklist } from "@/lib/verification";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -19,6 +20,9 @@ export default async function SettingsPage() {
   )
   .eq("id", user.id)
   .single();
+
+  const { checklist, missingProfileFields, score } = await getVerificationChecklist(supabase, user.id);
+  const status = score === 100 ? "verified" : score >= 60 ? "pending" : "unverified";
 
   return (
   <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
@@ -65,10 +69,12 @@ export default async function SettingsPage() {
   )}
   <VerificationPanel
     role={profile?.role ?? "freelancer"}
-    initialStatus={profile?.verification_status ?? "unverified"}
-    initialScore={profile?.verification_score ?? 0}
+    initialStatus={status}
+    initialScore={score}
     initialSummary={profile?.verification_summary ?? null}
     initialBusinessEmailVerified={profile?.business_email_verified ?? false}
+    initialChecklist={checklist}
+    initialMissingProfileFields={missingProfileFields}
   />
 </div>
     </div>
