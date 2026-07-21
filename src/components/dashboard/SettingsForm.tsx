@@ -81,8 +81,22 @@ const [city, setCity] = useState(initialProfile?.city ?? "");
     }
 
     const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-    setAvatarUrl(`${data.publicUrl}?t=${Date.now()}`);
+    const publicUrl = `${data.publicUrl}?t=${Date.now()}`;
+
+    const { error: saveError } = await supabase
+      .from("profiles")
+      .update({ avatar_url: publicUrl })
+      .eq("id", userId);
+
+    if (saveError) {
+      setError(saveError.message);
+      setAvatarUploading(false);
+      return;
+    }
+
+    setAvatarUrl(publicUrl);
     setAvatarUploading(false);
+    router.refresh();
   }
 
   async function handleIdDocumentChange(e: ChangeEvent<HTMLInputElement>) {
@@ -105,9 +119,21 @@ const [city, setCity] = useState(initialProfile?.city ?? "");
       return;
     }
 
+    const { error: saveError } = await supabase
+      .from("profiles")
+      .update({ id_document_url: path })
+      .eq("id", userId);
+
+    if (saveError) {
+      setError(saveError.message);
+      setIdUploading(false);
+      return;
+    }
+
     setIdDocumentUrl(path);
     setIdFileName(file.name);
     setIdUploading(false);
+    router.refresh();
   }
 
   function addSkill() {
