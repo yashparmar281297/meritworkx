@@ -68,6 +68,22 @@ export default function ProposalComposer({
 
     setSending(true);
 
+    try {
+      const modRes = await fetch("/api/moderation/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: coverLetter }),
+      });
+      const modData = await modRes.json();
+      if (modData.flagged) {
+        setError(CONTACT_INFO_ERROR);
+        setSending(false);
+        return;
+      }
+    } catch {
+      // fail open — an AI moderation outage shouldn't block ordinary proposals
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       setError("You must be logged in.");

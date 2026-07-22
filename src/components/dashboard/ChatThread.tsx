@@ -90,6 +90,24 @@ export default function ChatThread({
 
     setSending(true);
 
+    if (trimmed) {
+      try {
+        const modRes = await fetch("/api/moderation/check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: trimmed }),
+        });
+        const modData = await modRes.json();
+        if (modData.flagged) {
+          setError(CONTACT_INFO_ERROR);
+          setSending(false);
+          return;
+        }
+      } catch {
+        // fail open — an AI moderation outage shouldn't block ordinary messages
+      }
+    }
+
     let fileUrl: string | null = null;
     let fileName: string | null = null;
 
