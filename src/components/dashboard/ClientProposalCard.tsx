@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, UserRound } from "lucide-react";
 import ScoreCircleDisplay from "./ScoreCircleDisplay";
 import VerifiedBadge from "./VerifiedBadge";
 
@@ -43,27 +43,28 @@ export default function ClientProposalCard({
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 flex-wrap">
-          {proposal.freelancerId ? (
-            <Link
-              href={`/dashboard/client/freelancer/${proposal.freelancerId}`}
-              onClick={(e) => e.stopPropagation()}
-              className="font-semibold text-sm hover:underline"
-              style={{ color: "var(--ink)" }}
-            >
-              {proposal.freelancerName}
-            </Link>
-          ) : (
-            <h3
-              className="font-semibold text-sm"
-              style={{ color: "var(--ink)" }}
-            >
-              {proposal.freelancerName}
-            </h3>
-          )}
+          <h3
+            className="font-semibold text-sm"
+            style={{ color: "var(--ink)" }}
+          >
+            {proposal.freelancerName}
+          </h3>
 
           <VerifiedBadge
             status={proposal.verificationStatus ?? "unverified"}
           />
+
+          {proposal.freelancerId && (
+            <Link
+              href={`/dashboard/client/freelancer/${proposal.freelancerId}`}
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border transition hover:bg-[var(--surface)]"
+              style={{ borderColor: "var(--line-strong)", color: "var(--ink-soft)" }}
+            >
+              <UserRound size={11} />
+              View profile
+            </Link>
+          )}
 
           {proposal.isBestMatch && (
             <span

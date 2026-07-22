@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import { UserRound } from "lucide-react";
 import FitGapCards from "@/components/dashboard/FitGapCards";
 import { createClient } from "@/lib/supabase/server";
 import { getOrComputeMatchScore, getOrComputeFitGapAnalysis } from "@/lib/ai";
@@ -65,6 +66,14 @@ export default async function ProposalDetailPage({
       <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
         AI Match Score: <span className="font-semibold">{score}%</span>
       </p>
+      <Link
+        href={`/dashboard/client/freelancer/${freelancer.id}`}
+        className="inline-flex items-center gap-1 text-xs font-medium mt-1.5 px-2.5 py-1 rounded-full border transition hover:bg-[var(--surface)]"
+        style={{ borderColor: "var(--line-strong)", color: "var(--ink-soft)" }}
+      >
+        <UserRound size={12} />
+        View profile
+      </Link>
     </div>
   </div>
   <ProposalStatusSelect proposalId={proposalRaw.id} initialStatus={proposalRaw.status} />
