@@ -1,5 +1,7 @@
 import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
 import type { Metadata } from "next";
+import { Banknote } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import AdminFilters from "@/components/admin/AdminFilters";
 import StatCard from "@/components/admin/StatCard";
@@ -81,6 +83,11 @@ export default async function AdminPage({
   const rates = await getExchangeRates();
   const inrRate = rates.INR ?? 83;
 
+  const { count: pendingWithdrawals } = await supabase
+    .from("withdrawals")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "pending");
+
   const paymentsReceivedUsd = inRangePayments
     .filter((p) => p.type === "project" && p.status === "released")
     .reduce((sum, p) => sum + Number(p.total_charged ?? 0), 0);
@@ -114,13 +121,31 @@ export default async function AdminPage({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10 flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: "var(--ink)" }}>
-          Admin
-        </h1>
-        <p className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>
-          Platform statistics, growth, and the full user list.
-        </p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: "var(--ink)" }}>
+            Admin
+          </h1>
+          <p className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>
+            Platform statistics, growth, and the full user list.
+          </p>
+        </div>
+        <Link
+          href="/admin/withdrawals"
+          className="flex items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-full transition hover:opacity-90"
+          style={{ background: "var(--yellow)", color: "var(--ink)" }}
+        >
+          <Banknote size={15} />
+          Withdrawal requests
+          {!!pendingWithdrawals && (
+            <span
+              className="text-xs font-bold px-2 py-0.5 rounded-full"
+              style={{ background: "var(--ink)", color: "var(--yellow)" }}
+            >
+              {pendingWithdrawals}
+            </span>
+          )}
+        </Link>
       </div>
 
       <AdminFilters />
