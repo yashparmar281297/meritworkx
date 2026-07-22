@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sparkles, Loader2, Send, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { PlanTier } from "@/lib/planFeatures";
+import { findContactInfoViolation, CONTACT_INFO_ERROR } from "@/lib/contentModeration";
 
 export default function ProposalComposer({
   projectId,
@@ -58,6 +59,13 @@ export default function ProposalComposer({
       return;
     }
     setError("");
+
+    const violation = findContactInfoViolation(coverLetter);
+    if (violation) {
+      setError(CONTACT_INFO_ERROR);
+      return;
+    }
+
     setSending(true);
 
     const { data: { user } } = await supabase.auth.getUser();
@@ -75,7 +83,7 @@ export default function ProposalComposer({
     });
 
     if (insertError) {
-      setError(insertError.message);
+      setError(insertError.message.includes("Message blocked") ? CONTACT_INFO_ERROR : insertError.message);
       setSending(false);
       return;
     }

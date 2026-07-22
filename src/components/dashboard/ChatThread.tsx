@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, type FormEvent, type ChangeEvent } from "react";
 import { Send, Paperclip, FileText, Loader2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { findContactInfoViolation, CONTACT_INFO_ERROR } from "@/lib/contentModeration";
 
 type Message = {
   id: string;
@@ -29,6 +30,7 @@ export default function ChatThread({
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [error, setError] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -79,6 +81,13 @@ export default function ChatThread({
     const trimmed = body.trim();
     if (!trimmed && !pendingFile) return;
 
+    setError("");
+
+    if (trimmed && findContactInfoViolation(trimmed)) {
+      setError(CONTACT_INFO_ERROR);
+      return;
+    }
+
     setSending(true);
 
     let fileUrl: string | null = null;
@@ -100,7 +109,7 @@ export default function ChatThread({
       fileName = pendingFile.name;
     }
 
-    const { error } = await supabase.from("messages").insert({
+    const { error: insertError } = await supabase.from("messages").insert({
       conversation_id: conversationId,
       sender_id: currentUserId,
       body: trimmed || `📎 ${fileName}`,
@@ -108,7 +117,9 @@ export default function ChatThread({
       file_name: fileName,
     });
 
-    if (!error) {
+    if (insertError) {
+      setError(insertError.message.includes("Message blocked") ? CONTACT_INFO_ERROR : insertError.message);
+    } else {
       setBody("");
       setPendingFile(null);
     }
@@ -174,6 +185,11 @@ export default function ChatThread({
       </div>
 
       <form onSubmit={handleSend} className="flex flex-col gap-2 p-3 sm:p-4 border-t" style={{ borderColor: "var(--line)" }}>
+        {error && (
+          <p className="text-xs px-3 py-2 rounded-lg" style={{ background: "var(--bad-soft)", color: "var(--bad)" }}>
+            {error}
+          </p>
+        )}
         {pendingFile && (
           <div
             className="flex items-center gap-2 rounded-lg border px-3 py-2 w-fit"
@@ -202,7 +218,10 @@ export default function ChatThread({
           <input
   type="text"
   value={body}
-  onChange={(e) => setBody(e.target.value)}
+  onChange={(e) => {
+    setBody(e.target.value);
+    if (error) setError("");
+  }}
   placeholder="Type a message..."
   className="flex-1 px-4 py-2 rounded-full border outline-none text-xs"
   style={{ borderColor: "var(--line)", background: "var(--paper)", color: "var(--ink)" }}
